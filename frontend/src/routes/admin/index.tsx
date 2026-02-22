@@ -1,0 +1,43 @@
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { Card, Button, Input } from '../../components/ui'
+import { useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { api } from '../../lib/api'
+
+export const Route = createFileRoute('/admin/')({
+  component: LoginPage,
+})
+
+function LoginPage() {
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+
+  const loginMutation = useMutation({
+    mutationFn: (pass: string) => api.login(pass),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-auth'] })
+      navigate({ to: '/admin/games' })
+    },
+    onError: (err: any) => setError(err.message)
+  })
+
+  return (
+    <div className="flex items-center justify-center min-h-[50vh]">
+      <Card className="max-w-md w-full p-8 bg-blue-50">
+        <h2 className="text-4xl font-black mb-6 uppercase italic">Admin Access</h2>
+        <form onSubmit={(e) => { e.preventDefault(); loginMutation.mutate(password) }} className="space-y-4">
+          <div>
+            <label className="block font-black text-sm uppercase mb-1 tracking-tighter">Contraseña</label>
+            <Input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+          </div>
+          {error && <div className="p-3 bg-red-100 border-4 border-red-600 font-bold text-red-600">{error}</div>}
+          <Button type="submit" className="w-full bg-main" disabled={loginMutation.isPending}>
+            {loginMutation.isPending ? 'Validando...' : 'Entrar'}
+          </Button>
+        </form>
+      </Card>
+    </div>
+  )
+}

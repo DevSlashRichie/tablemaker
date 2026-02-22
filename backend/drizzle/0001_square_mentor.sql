@@ -1,0 +1,1 @@
+ALTER TABLE `tables` ADD `max_players` integer DEFAULT 10 NOT NULL;

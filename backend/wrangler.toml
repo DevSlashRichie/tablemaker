@@ -1,0 +1,20 @@
+name = "tablemaker-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-09"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tablemaker-db"
+database_id = "19f08975-e025-44d3-b6ac-863b5706b89b"
+migrations_dir = "drizzle"
+
+# [vars]
+# JWT_SECRET = "change-me"
+# TURNSTILE_SECRET_KEY = "change-me"
+# R2_ACCESS_KEY_ID = "change-me"
+# R2_SECRET_ACCESS_KEY = "change-me"
+# EMAIL_API_KEY = "change-me"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "tablemaker-assets"
