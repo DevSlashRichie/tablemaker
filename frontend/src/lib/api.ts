@@ -21,22 +21,24 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 export const api = {
   // Public
-  getActiveGame: () => request<any>('/api/game/active'),
+  getActiveGame: () => request<any>('/api/games/active'),
   register: (data: { tableId: string; name: string; email: string; phone?: string; turnstileToken: string }) => 
-    request<any>('/api/register', { method: 'POST', body: JSON.stringify(data) }),
+    request<any>('/api/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
   // Admin Auth
-  login: (password: string) => request<any>('/api/admin/login', { method: 'POST', body: JSON.stringify({ password }) }),
-  logout: () => request<any>('/api/admin/logout', { method: 'POST' }),
+  login: (password: string) => request<any>('/api/auth/login', { method: 'POST', body: JSON.stringify({ password }) }),
+  logout: () => request<any>('/api/admin/auth/logout', { method: 'POST' }),
 
   // Admin Games
   getAdminGames: () => request<any[]>('/api/admin/games'),
   createGame: (data: any) => request<any>('/api/admin/games', { method: 'POST', body: JSON.stringify(data) }),
+  updateGame: (id: string, data: any) => request<any>(`/api/admin/games/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   archiveGame: (id: string) => request<any>(`/api/admin/games/${id}/archive`, { method: 'POST' }),
 
   // Admin Tables
   getAdminTables: () => request<any[]>('/api/admin/tables'),
   createTable: (data: any) => request<any>('/api/admin/tables', { method: 'POST', body: JSON.stringify(data) }),
+  updateTable: (id: string, data: any) => request<any>(`/api/admin/tables/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   archiveTable: (id: string) => request<any>(`/api/admin/tables/${id}/archive`, { method: 'POST' }),
 
   // Helpers para URLs (CSV)
