@@ -101,8 +101,27 @@ authenticationRoutes.post('/register', zValidator('json', registerSchema), async
 
 // --- Admin Routes ---
 
-authenticationRoutes.post('/login', zValidator('json', z.object({ password: z.string() })), async (c) => {
-  const { password } = c.req.valid('json');
+authenticationRoutes.post('/login', zValidator('json', z.object({ 
+  password: z.string(),
+  turnstileToken: z.string()
+})), async (c) => {
+  const { password, turnstileToken } = c.req.valid('json');
+
+  // 1. Validate Turnstile
+  const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    body: JSON.stringify({
+      secret: c.env.TURNSTILE_SECRET_KEY,
+      response: turnstileToken
+    }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+  const verifyData: any = await verifyRes.json();
+  if (!verifyData.success) {
+    return c.json({ error: 'Captcha inválido' }, 400);
+  }
+
+  // 2. Check password
   if (password !== (c.env.ADMIN_PASSWORD || 'admin')) {
     return c.json({ error: 'Credenciales inválidas' }, 401);
   }

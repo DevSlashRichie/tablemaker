@@ -8,13 +8,13 @@ database_name = "tablemaker-db"
 database_id = "19f08975-e025-44d3-b6ac-863b5706b89b"
 migrations_dir = "drizzle"
 
-# [vars]
+[vars]
 # JWT_SECRET = "change-me"
 # TURNSTILE_SECRET_KEY = "change-me"
 # R2_ACCESS_KEY_ID = "change-me"
 # R2_SECRET_ACCESS_KEY = "change-me"
 # EMAIL_API_KEY = "change-me"
-# EMAIL_FROM = "TableMaker <onboarding@resend.dev>"
+EMAIL_FROM = "TableMaker <tablemaker@from.binarysails.com>"
 
 [[r2_buckets]]
 binding = "BUCKET"

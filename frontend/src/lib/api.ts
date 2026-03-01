@@ -26,7 +26,7 @@ export const api = {
     request<any>('/api/auth/register', { method: 'POST', body: JSON.stringify(data) }),
 
   // Admin Auth
-  login: (password: string) => request<any>('/api/auth/login', { method: 'POST', body: JSON.stringify({ password }) }),
+  login: (password: string, turnstileToken: string) => request<any>('/api/auth/login', { method: 'POST', body: JSON.stringify({ password, turnstileToken }) }),
   logout: () => request<any>('/api/admin/auth/logout', { method: 'POST' }),
 
   // Admin Games

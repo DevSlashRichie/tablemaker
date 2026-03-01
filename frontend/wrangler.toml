@@ -1,0 +1,4 @@
+name = "tablemaker"
+compatibility_date = "2025-02-28"
+
+pages_build_output_dir = "./dist"
