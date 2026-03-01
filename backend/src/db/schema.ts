@@ -7,6 +7,8 @@ export const games = sqliteTable('games', {
   title: text('title').notNull(),
   description: text('description').notNull(),
   headerImageUrl: text('header_image_url'),
+  eventTimestamp: integer('event_timestamp', { mode: 'timestamp' }).notNull(),
+  location: text('location').notNull(),
   startRegistrationDate: integer('start_registration_date', { mode: 'timestamp' }).notNull(),
   endRegistrationDate: integer('end_registration_date', { mode: 'timestamp' }).notNull(),
   isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),

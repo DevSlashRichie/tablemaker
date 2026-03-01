@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "deploy:local": "wrangler d1 migrations apply tablemaker-db --local",
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate"
   },
@@ -12,11 +13,13 @@
     "@hono/zod-validator": "^0.7.6",
     "drizzle-orm": "^0.45.1",
     "hono": "^4.12.1",
+    "resend": "^6.9.3",
     "uuidv7": "^1.1.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260228.0",
+    "better-sqlite3": "^12.6.2",
     "drizzle-kit": "^0.31.9",
     "typescript": "^5.9.3",
     "wrangler": "^4.67.0"

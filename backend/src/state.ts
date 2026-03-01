@@ -6,4 +6,5 @@ export type Bindings = {
   ADMIN_PASSWORD?: string;
   TURNSTILE_SECRET_KEY: string;
   EMAIL_API_KEY: string;
+  EMAIL_FROM: string;
 };

@@ -46,6 +46,8 @@ const gameSchema = z.object({
   title: z.string().min(1),
   description: z.string().min(1),
   headerImageUrl: z.url().optional(),
+  eventTimestamp: z.iso.datetime(),
+  location: z.string().min(1),
   startRegistrationDate: z.iso.datetime(),
   endRegistrationDate: z.iso.datetime(),
 });
@@ -55,6 +57,7 @@ gamesAdminRoute.post('/', zValidator('json', gameSchema), async (c) => {
   const data = c.req.valid('json');
   const res = await db.insert(schema.games).values({
     ...data,
+    eventTimestamp: new Date(data.eventTimestamp),
     startRegistrationDate: new Date(data.startRegistrationDate),
     endRegistrationDate: new Date(data.endRegistrationDate),
   }).returning();
@@ -67,6 +70,7 @@ gamesAdminRoute.put('/:id', zValidator('json', gameSchema), async (c) => {
   const data = c.req.valid('json');
   await db.update(schema.games).set({
     ...data,
+    eventTimestamp: new Date(data.eventTimestamp),
     startRegistrationDate: new Date(data.startRegistrationDate),
     endRegistrationDate: new Date(data.endRegistrationDate),
     updatedAt: new Date(),

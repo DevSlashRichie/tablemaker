@@ -41,6 +41,8 @@ function GamesAdmin() {
       title: '',
       description: '',
       headerImageUrl: '',
+      eventTimestamp: '',
+      location: '',
       startRegistrationDate: '',
       endRegistrationDate: '',
     },
@@ -49,6 +51,8 @@ function GamesAdmin() {
         title: z.string().min(1, 'El título es obligatorio'),
         description: z.string().min(1, 'La descripción es obligatoria'),
         headerImageUrl: z.string(),
+        eventTimestamp: z.string().min(1, 'Fecha del evento requerida'),
+        location: z.string().min(1, 'El lugar es obligatorio'),
         startRegistrationDate: z.string().min(1, 'Fecha requerida'),
         endRegistrationDate: z.string().min(1, 'Fecha requerida'),
       })
@@ -127,6 +131,43 @@ function GamesAdmin() {
                     onChange={(e) => field.handleChange(e.target.value)}
                     placeholder="https://..."
                   />
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field name="eventTimestamp">
+              {(field) => (
+                <div>
+                  <label className="block font-black text-sm uppercase mb-1">Fecha y Hora del Evento</label>
+                  <Input
+                    type="datetime-local"
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(new Date(e.target.value).toISOString())}
+                  />
+                  {field.state.meta.errors.length > 0 && (
+                    <p className="text-red-600 text-xs font-bold mt-1 uppercase italic">
+                      {field.state.meta.errors.map(err => typeof err === 'string' ? err : (err as any).message).join(', ')}
+                    </p>
+                  )}
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field name="location">
+              {(field) => (
+                <div>
+                  <label className="block font-black text-sm uppercase mb-1">Lugar</label>
+                  <Input
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Ej. Casa de la Cultura"
+                  />
+                  {field.state.meta.errors.length > 0 && (
+                    <p className="text-red-600 text-xs font-bold mt-1 uppercase italic">
+                      {field.state.meta.errors.map(err => typeof err === 'string' ? err : (err as any).message).join(', ')}
+                    </p>
+                  )}
                 </div>
               )}
             </form.Field>

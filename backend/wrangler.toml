@@ -14,6 +14,7 @@ migrations_dir = "drizzle"
 # R2_ACCESS_KEY_ID = "change-me"
 # R2_SECRET_ACCESS_KEY = "change-me"
 # EMAIL_API_KEY = "change-me"
+# EMAIL_FROM = "TableMaker <onboarding@resend.dev>"
 
 [[r2_buckets]]
 binding = "BUCKET"

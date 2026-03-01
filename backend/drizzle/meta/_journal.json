@@ -15,6 +15,13 @@
       "when": 1771741378616,
       "tag": "0001_square_mentor",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1772319189803,
+      "tag": "0002_last_wendell_vaughn",
+      "breakpoints": true
     }
   ]
 }

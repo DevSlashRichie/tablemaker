@@ -29,7 +29,7 @@ function LandingPage() {
     <div className="space-y-12">
       <header className="relative h-96 overflow-hidden border-4 border-black group shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
         {game.headerImageUrl ? (
-          <img src={game.headerImageUrl} alt={game.title} className="w-full h-full object-cover grayscale transition-all group-hover:grayscale-0" />
+          <img src={game.headerImageUrl} alt={game.title} className="w-full h-full object-cover transition-all group-hover:grayscale-0" />
         ) : (
           <div className="w-full h-full bg-main flex items-center justify-center">
             <span className="text-6xl font-black opacity-20 italic">NO IMAGE</span>

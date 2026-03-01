@@ -8,6 +8,7 @@ import { z } from 'zod';
 
 import { sign } from 'hono/jwt';
 import { setCookie } from 'hono/cookie';
+import { Resend } from 'resend';
 
 export const authenticationRoutes = new Hono<{ Bindings: Bindings }>();
 
@@ -75,9 +76,25 @@ authenticationRoutes.post('/register', zValidator('json', registerSchema), async
     throw e;
   }
 
-  // 4. Send Confirmation Email (Placeholder logic)
-  // TODO: Implement actual email sending via provider
-  console.log(`Sending confirmation to ${email} for table ${table.title}`);
+  // 4. Send Confirmation Email
+  const resend = new Resend(c.env.EMAIL_API_KEY);
+  await resend.emails.send({
+    from: c.env.EMAIL_FROM,
+    to: email,
+    subject: 'Confirmación de registro',
+    html: `
+      <h1>¡Estás registrado!</h1>
+      <p>Hola ${name},</p>
+      <p>Tu registro para la mesa <strong>${table.title}</strong> ha sido confirmado.</p>
+      <p>Detalles del evento:</p>
+      <ul>
+        <li>Mesa: ${table.title}</li>
+        <li>Fecha y hora: ${table.game.eventTimestamp.toLocaleString('es-MX', { dateStyle: 'full', timeStyle: 'short' })}</li>
+        <li>Lugar: ${table.game.location}</li>
+      </ul>
+      <p>¡Nos vemos ahí!</p>
+    `
+  });
 
   return c.json({ success: true, message: 'Registro exitoso. Revisa tu correo electrónico.' });
 });
