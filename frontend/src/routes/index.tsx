@@ -40,6 +40,14 @@ function LandingPage() {
           <p className="text-xl max-w-2xl font-bold bg-white text-black p-4 border-4 border-black mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             {game.description}
           </p>
+          <div className="flex flex-wrap gap-4 mt-4">
+            <span className="bg-white text-black font-black px-4 py-2 border-4 border-black text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              📅 {new Date(game.eventTimestamp).toLocaleString('es-MX', { dateStyle: 'full', timeStyle: 'short' })}
+            </span>
+            <span className="bg-white text-black font-black px-4 py-2 border-4 border-black text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              📍 {game.location}
+            </span>
+          </div>
           {isClosed && (
             <div className="mt-6 bg-red-500 text-white font-black px-6 py-2 border-4 border-black inline-block uppercase text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               El registro está cerrado

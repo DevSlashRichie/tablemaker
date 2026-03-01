@@ -23,7 +23,7 @@ export const api = {
   // Public
   getActiveGame: () => request<any>('/api/games/active'),
   register: (data: { tableId: string; name: string; email: string; phone?: string; turnstileToken: string }) => 
-    request<any>('/api/auth/register', { method: 'POST', body: JSON.stringify(data) }),
+    request<any>('/api/games/register', { method: 'POST', body: JSON.stringify(data) }),
 
   // Admin Auth
   login: (password: string, turnstileToken: string) => request<any>('/api/auth/login', { method: 'POST', body: JSON.stringify({ password, turnstileToken }) }),

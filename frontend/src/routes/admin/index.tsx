@@ -41,8 +41,10 @@ function LoginPage() {
           <div className="flex justify-center">
             <Turnstile
               ref={turnstileRef}
-              siteKey="0x4AAAAAACgY-F3BTuxgIYTEIaMtu71xVJA"
+              siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
               onSuccess={(token) => setTurnstileToken(token)}
+              className="w-full"
+              options={{ size: "flexible" }}
             />
           </div>
           {error && <div className="p-3 bg-red-100 border-4 border-red-600 font-bold text-red-600">{error}</div>}
