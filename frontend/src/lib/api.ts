@@ -45,5 +45,28 @@ export const api = {
   getExportUrl: (params: { gameId?: string; tableId?: string } = {}) => {
     const search = new URLSearchParams(params as any).toString();
     return `${BASE_URL}/api/admin/export/csv${search ? `?${search}` : ''}`;
+  },
+  exportRegistrations: async (params: { gameId?: string; tableId?: string } = {}) => {
+    const search = new URLSearchParams(params as any).toString();
+    const url = `${BASE_URL}/api/admin/export/csv${search ? `?${search}` : ''}`;
+    const response = await fetch(url, {
+      credentials: 'include',
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
+      throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+    }
+    const blob = await response.blob();
+    const contentDisposition = response.headers.get('Content-Disposition');
+    const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+    const filename = filenameMatch?.[1] || 'registrations.csv';
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
   }
 };

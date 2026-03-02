@@ -150,7 +150,7 @@ function ManageGameTables() {
         </h1>
         <div className="flex gap-4 w-full md:w-auto">
           <Button
-            onClick={() => window.open(api.getExportUrl({ gameId }), '_blank')}
+            onClick={() => api.exportRegistrations({ gameId })}
             className="bg-green-400 text-black text-xs px-4"
           >
             Exportar Registros (Juego)
