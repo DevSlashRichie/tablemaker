@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useState, useEffect, createContext, useContext, type ReactNode } from 'react';
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -93,16 +95,16 @@ export function Card({ className, children }: { className?: string; children: Re
   );
 }
 
-export function Modal({ 
-  isOpen, 
-  onClose, 
-  title, 
-  children 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  title: string; 
-  children: React.ReactNode 
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  children
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode
 }) {
   if (!isOpen) return null;
 
@@ -137,14 +139,34 @@ export function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInp
   );
 }
 
-export function FileInput({ 
-  className, 
-  value, 
+export function Textarea({ className, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <textarea
+      className={cn(
+        'w-full px-3 py-2 border-4 border-black font-medium focus:outline-none focus:ring-2 focus:ring-main-accent bg-white resize-none',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export function MarkdownContent({ content, className }: { content: string; className?: string }) {
+  return (
+    <div className={cn('markdown-content prose', className)}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+    </div>
+  );
+}
+
+export function FileInput({
+  className,
+  value,
   onChange,
   label = "Subir imagen",
   accept = "image/*"
-}: { 
-  className?: string; 
+}: {
+  className?: string;
   value?: string;
   onChange: (url: string) => void;
   label?: string;

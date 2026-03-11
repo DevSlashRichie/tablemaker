@@ -1,5 +1,5 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-import { Card, Button, Input, FileInput, Modal, useToast } from '../../components/ui'
+import { Card, Button, Input, FileInput, Modal, useToast, Textarea, MarkdownContent } from '../../components/ui'
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from '@tanstack/react-form'
@@ -216,11 +216,12 @@ function ManageGameTables() {
               {(field) => (
                 <div>
                   <label className="block font-black text-sm uppercase mb-1">Descripción</label>
-                  <Input
+                  <Textarea
                     value={field.state.value}
                     onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                     placeholder="Describe lo que pasará en esta mesa..."
+                    rows={4}
                   />
                   {field.state.meta.errors.length > 0 && (
                     <p className="text-red-600 text-xs font-bold mt-1 uppercase italic">
@@ -302,7 +303,7 @@ function ManageGameTables() {
               </div>
             </div>
 
-            <p className="font-bold mb-4 opacity-75">{t.description}</p>
+            <MarkdownContent content={t.description} className="font-bold mb-4 opacity-75" />
 
             <h4 className="text-xs font-black uppercase italic mt-6 border-b-2 border-black inline-block mb-2">Participantes ({t.registrations?.length || 0})</h4>
             <ParticipantsTable data={t.registrations || []} />
@@ -345,14 +346,14 @@ function ManageGameTables() {
   )
 }
 
-function TableEditModal({ 
-  table, 
-  isOpen, 
-  onClose, 
+function TableEditModal({
+  table,
+  isOpen,
+  onClose,
   onSave,
   isSaving,
   showToast
-}: { 
+}: {
   table: any
   isOpen: boolean
   onClose: () => void
@@ -371,7 +372,7 @@ function TableEditModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     const values = {
       gameId: table?.gameId,
       title: (document.getElementById('title') as HTMLInputElement)?.value,
@@ -379,12 +380,12 @@ function TableEditModal({
       imageUrl: imageUrl,
       maxPlayers: Number((document.getElementById('maxPlayers') as HTMLInputElement)?.value) || 10,
     }
-    
+
     if (!values.title || !values.description) {
       showToast('Por favor completa los campos obligatorios', 'error')
       return
     }
-    
+
     if (!table) return
     onSave(table.id, values)
   }
@@ -408,9 +409,10 @@ function TableEditModal({
 
         <div>
           <label className="block font-black text-sm uppercase mb-1">Descripción</label>
-          <Input
+          <Textarea
             id="description"
             defaultValue={table?.description ?? ''}
+            rows={4}
           />
         </div>
 
