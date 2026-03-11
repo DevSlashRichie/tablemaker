@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { Card, Button, Input } from '../../components/ui'
-import { useState } from 'react'
+import { Card, Button, Input, FileInput, Modal, useToast } from '../../components/ui'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
@@ -14,6 +14,8 @@ function GamesAdmin() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [isCreating, setIsCreating] = useState(false)
+  const [editingGame, setEditingGame] = useState<any>(null)
+  const { showToast } = useToast()
 
   const { data: games, isLoading } = useQuery({
     queryKey: ['admin-games'],
@@ -25,7 +27,23 @@ function GamesAdmin() {
     onSuccess: (newGame: any) => {
       queryClient.invalidateQueries({ queryKey: ['admin-games'] })
       setIsCreating(false)
+      showToast('Juego creado correctamente', 'success')
       navigate({ to: '/admin/games/$gameId/tables', params: { gameId: newGame.id } })
+    },
+    onError: (error) => {
+      showToast(error instanceof Error ? error.message : 'Error al crear el juego', 'error')
+    }
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => api.updateGame(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-games'] })
+      setEditingGame(null)
+      showToast('Juego actualizado correctamente', 'success')
+    },
+    onError: (error) => {
+      showToast(error instanceof Error ? error.message : 'Error al actualizar el juego', 'error')
     }
   })
 
@@ -33,6 +51,10 @@ function GamesAdmin() {
     mutationFn: (gameId: string) => api.archiveGame(gameId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-games'] })
+      showToast('Juego archivado correctamente', 'success')
+    },
+    onError: (error) => {
+      showToast(error instanceof Error ? error.message : 'Error al archivar el juego', 'error')
     }
   })
 
@@ -124,13 +146,20 @@ function GamesAdmin() {
             <form.Field name="headerImageUrl">
               {(field) => (
                 <div>
-                  <label className="block font-black text-sm uppercase mb-1">Imagen de Cabecera (URL)</label>
-                  <Input
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="https://..."
-                  />
+                  <label className="block font-black text-sm uppercase mb-1">Imagen de Cabecera</label>
+                  <div className="space-y-2">
+                    <Input
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="https://... (o sube una imagen)"
+                    />
+                    <FileInput
+                      value={field.state.value}
+                      onChange={field.handleChange}
+                      label="Subir imagen"
+                    />
+                  </div>
                 </div>
               )}
             </form.Field>
@@ -236,6 +265,12 @@ function GamesAdmin() {
             </div>
 
             <div className="flex gap-4">
+              <Button
+                onClick={() => setEditingGame(g)}
+                className="bg-yellow-400 px-4 py-2"
+              >
+                Editar
+              </Button>
               <Link
                 to="/admin/games/$gameId/tables"
                 params={{ gameId: g.id }}
@@ -261,6 +296,158 @@ function GamesAdmin() {
           </Card>
         ))}
       </div>
+
+      <GameEditModal
+        game={editingGame}
+        isOpen={!!editingGame}
+        onClose={() => setEditingGame(null)}
+        onSave={(id, data) => updateMutation.mutate({ id, data })}
+        isSaving={updateMutation.isPending}
+        showToast={showToast}
+      />
     </div>
+  )
+}
+
+function GameEditModal({ 
+  game, 
+  isOpen, 
+  onClose, 
+  onSave,
+  isSaving,
+  showToast
+}: { 
+  game: any
+  isOpen: boolean
+  onClose: () => void
+  onSave: (id: string, data: any) => void
+  isSaving: boolean
+  showToast: (message: string, type: 'success' | 'error') => void
+}) {
+  const [headerImageUrl, setHeaderImageUrl] = useState('')
+
+  useEffect(() => {
+    if (game) {
+      setHeaderImageUrl(game.headerImageUrl || '')
+    }
+  }, [game])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const values = {
+      title: (document.getElementById('title') as HTMLInputElement)?.value,
+      description: (document.getElementById('description') as HTMLInputElement)?.value,
+      headerImageUrl: headerImageUrl,
+      eventTimestamp: (document.getElementById('eventTimestamp') as HTMLInputElement)?.value,
+      location: (document.getElementById('location') as HTMLInputElement)?.value,
+      startRegistrationDate: (document.getElementById('startRegistrationDate') as HTMLInputElement)?.value,
+      endRegistrationDate: (document.getElementById('endRegistrationDate') as HTMLInputElement)?.value,
+    }
+    
+    if (!values.title || !values.description || !values.eventTimestamp || !values.location) {
+      showToast('Por favor completa los campos obligatorios', 'error')
+      return
+    }
+    
+    if (!game) return
+    
+    const data = {
+      ...values,
+      eventTimestamp: values.eventTimestamp ? new Date(values.eventTimestamp).toISOString() : '',
+      startRegistrationDate: values.startRegistrationDate ? new Date(values.startRegistrationDate).toISOString() : '',
+      endRegistrationDate: values.endRegistrationDate ? new Date(values.endRegistrationDate).toISOString() : '',
+    }
+    onSave(game.id, data)
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Editar Juego">
+      <form
+        key={game?.id}
+        onSubmit={handleSubmit}
+        className="space-y-6"
+      >
+        <div>
+          <label className="block font-black text-sm uppercase mb-1">Título</label>
+          <Input
+            id="title"
+            defaultValue={game?.title ?? ''}
+          />
+        </div>
+
+        <div>
+          <label className="block font-black text-sm uppercase mb-1">Descripción</label>
+          <Input
+            id="description"
+            defaultValue={game?.description ?? ''}
+          />
+        </div>
+
+        <div>
+          <label className="block font-black text-sm uppercase mb-1">Imagen de Cabecera</label>
+          <div className="space-y-2">
+            <Input
+              id="headerImageUrl"
+              value={headerImageUrl}
+              onChange={(e) => setHeaderImageUrl(e.target.value)}
+              placeholder="https://... (o sube una imagen)"
+            />
+            <FileInput
+              value={headerImageUrl}
+              onChange={setHeaderImageUrl}
+              label="Subir imagen"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block font-black text-sm uppercase mb-1">Fecha y Hora del Evento</label>
+          <Input
+            id="eventTimestamp"
+            type="datetime-local"
+            defaultValue={game?.eventTimestamp ? new Date(game.eventTimestamp).toISOString().slice(0, 16) : ''}
+          />
+        </div>
+
+        <div>
+          <label className="block font-black text-sm uppercase mb-1">Lugar</label>
+          <Input
+            id="location"
+            defaultValue={game?.location ?? ''}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block font-black text-sm uppercase mb-1 text-xs">Inicio Registro</label>
+            <Input
+              id="startRegistrationDate"
+              type="datetime-local"
+              defaultValue={game?.startRegistrationDate ? new Date(game.startRegistrationDate).toISOString().slice(0, 16) : ''}
+            />
+          </div>
+
+          <div>
+            <label className="block font-black text-sm uppercase mb-1 text-xs">Fin Registro</label>
+            <Input
+              id="endRegistrationDate"
+              type="datetime-local"
+              defaultValue={game?.endRegistrationDate ? new Date(game.endRegistrationDate).toISOString().slice(0, 16) : ''}
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-4">
+          <Button type="submit" className="w-full bg-green-400" disabled={isSaving}>
+            {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+          </Button>
+          <Button type="button" onClick={onClose} className="w-full bg-red-400">Cancelar</Button>
+        </div>
+      </form>
+    </Modal>
   )
 }

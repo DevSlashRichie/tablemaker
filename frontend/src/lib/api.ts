@@ -41,6 +41,26 @@ export const api = {
   updateTable: (id: string, data: any) => request<any>(`/api/admin/tables/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   archiveTable: (id: string) => request<any>(`/api/admin/tables/${id}/archive`, { method: 'POST' }),
 
+  // Admin Upload
+  uploadImage: async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${BASE_URL}/api/admin/upload/image`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
+      throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.url;
+  },
+
   // Helpers para URLs (CSV)
   getExportUrl: (params: { gameId?: string; tableId?: string } = {}) => {
     const search = new URLSearchParams(params as any).toString();

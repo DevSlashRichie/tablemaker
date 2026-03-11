@@ -2,6 +2,7 @@ import { createRootRouteWithContext, Outlet, Link } from '@tanstack/react-router
 import { TanStackRouterDevtools } from '@tanstack/router-devtools'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { QueryClient } from '@tanstack/react-query'
+import { ToastProvider } from '../components/ui'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -9,7 +10,7 @@ interface MyRouterContext {
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: () => (
-    <>
+    <ToastProvider>
       <div className="min-h-screen font-lato">
         <nav className="p-4 border-b-4 border-black bg-white flex justify-between items-center sticky top-0 z-50">
           <Link to="/" className="text-3xl font-black uppercase tracking-tighter">
@@ -22,6 +23,6 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       </div>
       <TanStackRouterDevtools />
       <ReactQueryDevtools />
-    </>
+    </ToastProvider>
   ),
 })

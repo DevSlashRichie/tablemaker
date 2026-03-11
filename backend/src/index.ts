@@ -6,6 +6,7 @@ import { gamesAdminRoute, gamesPublicRoute } from './routes/games';
 import { tablesAdminRoutes } from './routes/tables';
 import { authenticationAdminRoutes, authenticationRoutes } from './routes/authentication';
 import { exportAdminRoutes } from './routes/export';
+import { uploadRoutes } from './routes/upload';
 
 
 const app = new Hono<{ Bindings: Bindings }>().basePath('/api');
@@ -25,6 +26,7 @@ adminRoute.route("/games", gamesAdminRoute);
 adminRoute.route("/tables", tablesAdminRoutes);
 adminRoute.route("/export", exportAdminRoutes);
 adminRoute.route("/auth", authenticationAdminRoutes);
+adminRoute.route("/upload", uploadRoutes);
 
 app.route('/admin', adminRoute);
 

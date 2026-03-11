@@ -1,6 +1,6 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
-import { Card, Button, Input } from '../../components/ui'
-import { useState } from 'react'
+import { Card, Button, Input, FileInput, Modal, useToast } from '../../components/ui'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
@@ -88,6 +88,8 @@ function ManageGameTables() {
   const { gameId } = useParams({ from: '/admin/games/$gameId/tables' })
   const queryClient = useQueryClient()
   const [isCreating, setIsCreating] = useState(false)
+  const [editingTable, setEditingTable] = useState<any>(null)
+  const { showToast } = useToast()
 
   const { data: game, isLoading: gameLoading } = useQuery({
     queryKey: ['admin-game', gameId],
@@ -110,6 +112,10 @@ function ManageGameTables() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-tables', gameId] })
       setIsCreating(false)
+      showToast('Mesa creada correctamente', 'success')
+    },
+    onError: (error) => {
+      showToast(error instanceof Error ? error.message : 'Error al crear la mesa', 'error')
     }
   })
 
@@ -117,6 +123,22 @@ function ManageGameTables() {
     mutationFn: (tableId: string) => api.archiveTable(tableId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-tables', gameId] })
+      showToast('Mesa archivada correctamente', 'success')
+    },
+    onError: (error) => {
+      showToast(error instanceof Error ? error.message : 'Error al archivar la mesa', 'error')
+    }
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => api.updateTable(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-tables', gameId] })
+      setEditingTable(null)
+      showToast('Mesa actualizada correctamente', 'success')
+    },
+    onError: (error) => {
+      showToast(error instanceof Error ? error.message : 'Error al actualizar la mesa', 'error')
     }
   })
 
@@ -212,13 +234,20 @@ function ManageGameTables() {
             <form.Field name="imageUrl">
               {(field) => (
                 <div>
-                  <label className="block font-black text-sm uppercase mb-1">Imagen (URL)</label>
-                  <Input
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    placeholder="https://..."
-                  />
+                  <label className="block font-black text-sm uppercase mb-1">Imagen</label>
+                  <div className="space-y-2">
+                    <Input
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="https://... (o sube una imagen)"
+                    />
+                    <FileInput
+                      value={field.state.value}
+                      onChange={field.handleChange}
+                      label="Subir imagen"
+                    />
+                  </div>
                 </div>
               )}
             </form.Field>
@@ -265,7 +294,7 @@ function ManageGameTables() {
               <div className="flex flex-col items-end gap-2">
                 {t.isArchived ?
                   <span className="bg-black text-white px-2 py-1 text-xs border-2 border-black">ARCHIVADA</span> :
-                  <span className="bg-yellow-400 px-2 py-1 text-xs border-2 border-black font-black uppercase tracking-tighter">Mesa Activa</span>
+                  <span className="bg-yellow-400 px-2 py-1 text-xs border--black uppercase tracking-t2 border-black fontighter">Mesa Activa</span>
                 }
                 <span className="bg-blue-400 px-2 py-1 text-[10px] border-2 border-black font-black">
                   CUPO: {t.registrations?.length || 0} / {t.maxPlayers}
@@ -279,6 +308,13 @@ function ManageGameTables() {
             <ParticipantsTable data={t.registrations || []} />
 
             <div className="flex flex-wrap gap-4 mt-6">
+              <Button
+                onClick={() => setEditingTable(t)}
+                className="bg-yellow-400 flex-grow"
+              >
+                Editar
+              </Button>
+
               {!t.isArchived && (
                 <Button
                   onClick={() => {
@@ -296,6 +332,121 @@ function ManageGameTables() {
           </Card>
         ))}
       </div>
+
+      <TableEditModal
+        table={editingTable}
+        isOpen={!!editingTable}
+        onClose={() => setEditingTable(null)}
+        onSave={(id, data) => updateMutation.mutate({ id, data })}
+        isSaving={updateMutation.isPending}
+        showToast={showToast}
+      />
     </div>
+  )
+}
+
+function TableEditModal({ 
+  table, 
+  isOpen, 
+  onClose, 
+  onSave,
+  isSaving,
+  showToast
+}: { 
+  table: any
+  isOpen: boolean
+  onClose: () => void
+  onSave: (id: string, data: any) => void
+  isSaving: boolean
+  showToast: (message: string, type: 'success' | 'error') => void
+}) {
+  const [imageUrl, setImageUrl] = useState('')
+
+  useEffect(() => {
+    if (table) {
+      setImageUrl(table.imageUrl || '')
+    }
+  }, [table])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const values = {
+      gameId: table?.gameId,
+      title: (document.getElementById('title') as HTMLInputElement)?.value,
+      description: (document.getElementById('description') as HTMLInputElement)?.value,
+      imageUrl: imageUrl,
+      maxPlayers: Number((document.getElementById('maxPlayers') as HTMLInputElement)?.value) || 10,
+    }
+    
+    if (!values.title || !values.description) {
+      showToast('Por favor completa los campos obligatorios', 'error')
+      return
+    }
+    
+    if (!table) return
+    onSave(table.id, values)
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Editar Mesa">
+      <form
+        key={table?.id}
+        onSubmit={handleSubmit}
+        className="space-y-6"
+      >
+        <div>
+          <label className="block font-black text-sm uppercase mb-1">Título de la Mesa</label>
+          <Input
+            id="title"
+            defaultValue={table?.title ?? ''}
+          />
+        </div>
+
+        <div>
+          <label className="block font-black text-sm uppercase mb-1">Descripción</label>
+          <Input
+            id="description"
+            defaultValue={table?.description ?? ''}
+          />
+        </div>
+
+        <div>
+          <label className="block font-black text-sm uppercase mb-1">Imagen</label>
+          <div className="space-y-2">
+            <Input
+              id="imageUrl"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://... (o sube una imagen)"
+            />
+            <FileInput
+              value={imageUrl}
+              onChange={setImageUrl}
+              label="Subir imagen"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block font-black text-sm uppercase mb-1">Máximo de Jugadores</label>
+          <Input
+            id="maxPlayers"
+            type="number"
+            defaultValue={table?.maxPlayers ?? 10}
+          />
+        </div>
+
+        <div className="flex gap-4">
+          <Button type="submit" className="w-full bg-green-400" disabled={isSaving}>
+            {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+          </Button>
+          <Button type="button" onClick={onClose} className="w-full bg-red-400">Cancelar</Button>
+        </div>
+      </form>
+    </Modal>
   )
 }
