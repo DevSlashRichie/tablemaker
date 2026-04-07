@@ -13,10 +13,13 @@ export const tablesAdminRoutes = new Hono<{ Bindings: Bindings }>();
 // Tables
 tablesAdminRoutes.get('/', async (c) => {
   const db = getDB(c.env.DB);
-  return c.json(await db.query.tables.findMany({
+
+  const r = await db.query.tables.findMany({
     with: { game: true, registrations: true },
     orderBy: [desc(schema.tables.createdAt)]
-  }));
+  });
+
+  return c.json(r);
 });
 
 const tableSchema = z.object({

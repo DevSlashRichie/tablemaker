@@ -15,8 +15,8 @@ migrations_dir = "drizzle"
 # R2_ACCESS_KEY_ID = "change-me"
 # R2_SECRET_ACCESS_KEY = "change-me"
 # EMAIL_API_KEY = "change-me"
-EMAIL_FROM = "TableMaker <tablemaker@from.binarysails.com>"
-ASSETS_URL = "https://pub-17dbf5616fc54b6cbe43270b38d68365.r2.dev"
+EMAIL_FROM = "QueretarolTec <tablemaker@from.binarysails.com>"
+ASSETS_URL = "https://cdn.queretaroltec.org"
 
 [[r2_buckets]]
 binding = "BUCKET"

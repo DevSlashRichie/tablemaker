@@ -9,6 +9,49 @@ import { Resend } from 'resend';
 
 export const gamesPublicRoute = new Hono<{ Bindings: Bindings }>();
 
+async function sendConfirmationEmail(db: any, registrationId: string, env: Bindings, isUpdate = false) {
+  const reg = await db.query.registrations.findFirst({
+    where: eq(schema.registrations.id, registrationId),
+    with: {
+      table: {
+        with: {
+          game: true
+        }
+      }
+    }
+  });
+
+  if (!reg) throw new Error('Registro no encontrado');
+
+  const resend = new Resend(env.EMAIL_API_KEY);
+  await resend.emails.send({
+    from: env.EMAIL_FROM,
+    to: reg.email,
+    subject: isUpdate ? '[ACTUALIZACIÓN] Confirmación de registro' : 'Confirmación de registro',
+    html: `
+      ${isUpdate ? `
+        <div style="background-color: #fff3cd; border: 1px solid #ffeeba; color: #856404; padding: 15px; margin-bottom: 20px; border-radius: 4px; font-family: sans-serif;">
+          <strong>Nota importante:</strong> Estamos reenviando este correo con información actualizada o corregida sobre el horario del evento. Por favor, toma en cuenta los detalles a continuación.
+        </div>
+      ` : ''}
+      <h1>¡Estás registrado!</h1>
+      <p>Hola ${reg.name},</p>
+      <p>Tu registro para la mesa <strong>${reg.table.title}</strong> ha sido confirmado.</p>
+      <p>Detalles del evento:</p>
+      <ul>
+        <li>Mesa: ${reg.table.title}</li>
+        <li>Fecha y hora: ${reg.table.game.eventTimestamp.toLocaleString('es-MX', {
+      dateStyle: 'full',
+      timeStyle: 'short',
+      timeZone: 'America/Mexico_City'
+    })}</li>
+        <li>Lugar: ${reg.table.game.location}</li>
+      </ul>
+      <p>¡Nos vemos ahí!</p>
+    `
+  });
+}
+
 // POST registration
 const registerSchema = z.object({
   tableId: z.uuidv7(),
@@ -59,13 +102,15 @@ gamesPublicRoute.post('/register', zValidator('json', registerSchema), async (c)
   }
 
   // 3. Register
+  let registrationId: string;
   try {
-    await db.insert(schema.registrations).values({
+    const res = await db.insert(schema.registrations).values({
       tableId,
       name,
       email,
       phone
-    });
+    }).returning();
+    registrationId = res[0].id;
   } catch (e: any) {
     if (e.message?.includes('UNIQUE')) {
       return c.json({ error: 'Ya estás registrado en esta mesa.' }, 400);
@@ -74,24 +119,7 @@ gamesPublicRoute.post('/register', zValidator('json', registerSchema), async (c)
   }
 
   // 4. Send Confirmation Email
-  const resend = new Resend(c.env.EMAIL_API_KEY);
-  await resend.emails.send({
-    from: c.env.EMAIL_FROM,
-    to: email,
-    subject: 'Confirmación de registro',
-    html: `
-      <h1>¡Estás registrado!</h1>
-      <p>Hola ${name},</p>
-      <p>Tu registro para la mesa <strong>${table.title}</strong> ha sido confirmado.</p>
-      <p>Detalles del evento:</p>
-      <ul>
-        <li>Mesa: ${table.title}</li>
-        <li>Fecha y hora: ${table.game.eventTimestamp.toLocaleString('es-MX', { dateStyle: 'full', timeStyle: 'short' })}</li>
-        <li>Lugar: ${table.game.location}</li>
-      </ul>
-      <p>¡Nos vemos ahí!</p>
-    `
-  });
+  await sendConfirmationEmail(db, registrationId, c.env);
 
   return c.json({ success: true, message: 'Registro exitoso. Revisa tu correo electrónico.' });
 });
@@ -171,5 +199,23 @@ gamesAdminRoute.post('/:id/archive', async (c) => {
   const id = c.req.param('id');
   await db.update(schema.games).set({ isArchived: true, updatedAt: new Date() }).where(eq(schema.games.id, id));
   return c.json({ success: true });
+});
+
+gamesAdminRoute.delete('/registrations/:id', async (c) => {
+  const db = getDB(c.env.DB);
+  const id = c.req.param('id');
+  await db.delete(schema.registrations).where(eq(schema.registrations.id, id));
+  return c.json({ success: true });
+});
+
+gamesAdminRoute.post('/registrations/:id/resend', async (c) => {
+  const db = getDB(c.env.DB);
+  const id = c.req.param('id');
+  try {
+    await sendConfirmationEmail(db, id, c.env, true);
+    return c.json({ success: true });
+  } catch (e: any) {
+    return c.json({ error: e.message || 'Error al reenviar el correo' }, 400);
+  }
 });
 

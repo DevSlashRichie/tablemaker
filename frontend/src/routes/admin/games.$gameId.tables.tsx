@@ -26,7 +26,7 @@ type Registration = {
 
 const columnHelper = createColumnHelper<Registration>()
 
-const columns = [
+const columns = (onDelete: (id: string) => void, onResend: (id: string) => void) => [
   columnHelper.accessor('name', {
     header: 'Nombre',
     cell: info => <span className="font-black">{info.getValue()}</span>,
@@ -43,14 +43,39 @@ const columns = [
     header: 'Fecha',
     cell: info => new Date(info.getValue()).toLocaleString(),
   }),
+  columnHelper.display({
+    id: 'actions',
+    header: 'Acciones',
+    cell: info => (
+      <div className="flex gap-2">
+        <Button
+          onClick={() => {
+            if (confirm('¿Seguro que quieres eliminar este registro?')) {
+              onDelete(info.row.original.id)
+            }
+          }}
+          className="bg-red-500 text-white text-[8px] py-1 px-2 uppercase font-black h-auto"
+        >
+          Eliminar
+        </Button>
+        <Button
+          onClick={() => onResend(info.row.original.id)}
+          className="bg-blue-500 text-white text-[8px] py-1 px-2 uppercase font-black h-auto"
+        >
+          Notificar Cambio
+        </Button>
+      </div>
+    ),
+  }),
 ]
 
-function ParticipantsTable({ data }: { data: Registration[] }) {
+function ParticipantsTable({ data, onDelete, onResend }: { data: Registration[], onDelete: (id: string) => void, onResend: (id: string) => void }) {
   const table = useReactTable({
     data,
-    columns,
+    columns: columns(onDelete, onResend),
     getCoreRowModel: getCoreRowModel(),
   })
+
 
   if (data.length === 0) return <p className="text-xs italic opacity-50 mt-4">Sin participantes registrados aún.</p>
 
@@ -139,6 +164,27 @@ function ManageGameTables() {
     },
     onError: (error) => {
       showToast(error instanceof Error ? error.message : 'Error al actualizar la mesa', 'error')
+    }
+  })
+
+  const deleteRegistrationMutation = useMutation({
+    mutationFn: (id: string) => api.deleteRegistration(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-tables', gameId] })
+      showToast('Registro eliminado correctamente', 'success')
+    },
+    onError: (error) => {
+      showToast(error instanceof Error ? error.message : 'Error al eliminar el registro', 'error')
+    }
+  })
+
+  const resendEmailMutation = useMutation({
+    mutationFn: (id: string) => api.resendRegistrationEmail(id),
+    onSuccess: () => {
+      showToast('Correo de actualización enviado', 'success')
+    },
+    onError: (error) => {
+      showToast(error instanceof Error ? error.message : 'Error al enviar la actualización', 'error')
     }
   })
 
@@ -306,7 +352,11 @@ function ManageGameTables() {
             <MarkdownContent content={t.description} className="font-bold mb-4 opacity-75" />
 
             <h4 className="text-xs font-black uppercase italic mt-6 border-b-2 border-black inline-block mb-2">Participantes ({t.registrations?.length || 0})</h4>
-            <ParticipantsTable data={t.registrations || []} />
+            <ParticipantsTable
+              data={t.registrations || []}
+              onDelete={(id) => deleteRegistrationMutation.mutate(id)}
+              onResend={(id) => resendEmailMutation.mutate(id)}
+            />
 
             <div className="flex flex-wrap gap-4 mt-6">
               <Button

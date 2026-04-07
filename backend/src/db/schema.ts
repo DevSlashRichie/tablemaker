@@ -12,8 +12,8 @@ export const games = sqliteTable('games', {
   startRegistrationDate: integer('start_registration_date', { mode: 'timestamp' }).notNull(),
   endRegistrationDate: integer('end_registration_date', { mode: 'timestamp' }).notNull(),
   isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(strftime('%s', 'now') * 1000)`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(strftime('%s', 'now') * 1000)`),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(strftime('%s', 'now'))`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(strftime('%s', 'now'))`),
 });
 
 export const gamesRelations = relations(games, ({ many }) => ({
@@ -28,8 +28,8 @@ export const tables = sqliteTable('tables', {
   imageUrl: text('image_url'),
   maxPlayers: integer('max_players').notNull().default(5), // New column
   isArchived: integer('is_archived', { mode: 'boolean' }).notNull().default(false),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(strftime('%s', 'now') * 1000)`),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(strftime('%s', 'now') * 1000)`),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(strftime('%s', 'now'))`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(strftime('%s', 'now'))`),
 });
 
 export const tablesRelations = relations(tables, ({ one, many }) => ({
@@ -46,7 +46,7 @@ export const registrations = sqliteTable('registrations', {
   name: text('name').notNull(),
   email: text('email').notNull(),
   phone: text('phone'),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(strftime('%s', 'now') * 1000)`),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(strftime('%s', 'now'))`),
 }, (table) => ({
   uniqueReg: uniqueIndex('unique_table_email').on(table.tableId, table.email),
 }));

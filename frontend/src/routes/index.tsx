@@ -27,18 +27,18 @@ function LandingPage() {
 
   return (
     <div className="space-y-12">
-      <header className="relative h-96 overflow-hidden border-4 border-black group shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
+      <header className="relative h-auto md:h-96 overflow-hidden border-4 border-black group shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
         {game.headerImageUrl ? (
-          <img src={game.headerImageUrl} alt={game.title} className="w-full h-full object-cover transition-all group-hover:grayscale-0" />
+          <img src={game.headerImageUrl} alt={game.title} className="w-full h-64 md:h-full object-cover transition-all group-hover:grayscale-0" />
         ) : (
-          <div className="w-full h-full bg-main flex items-center justify-center">
+          <div className="w-full h-64 md:h-full bg-main flex items-center justify-center">
             <span className="text-6xl font-black opacity-20 italic">NO IMAGE</span>
           </div>
         )}
 
-        <div className="absolute inset-0 bg-black/50 flex flex-col justify-end p-8 text-white">
-          <h1 className="text-7xl font-black uppercase tracking-tighter shadow-black italic">{game.title}</h1>
-          <p className="text-xl max-w-2xl font-bold bg-white text-black p-4 border-4 border-black mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <div className="absolute inset-0 bg-black/50 flex flex-col justify-end p-4 md:p-8 text-white">
+          <h1 className="text-4xl md:text-7xl font-black uppercase tracking-tighter shadow-black italic">{game.title}</h1>
+          <p className="text-base md:text-xl max-w-full md:max-w-2xl font-bold bg-white text-black p-2 md:p-4 border-4 border-black mt-2 md:mt-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <MarkdownContent content={game.description} />
           </p>
           <div className="flex flex-wrap gap-4 mt-4">

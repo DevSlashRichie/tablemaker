@@ -40,6 +40,8 @@ export const api = {
   createTable: (data: any) => request<any>('/api/admin/tables', { method: 'POST', body: JSON.stringify(data) }),
   updateTable: (id: string, data: any) => request<any>(`/api/admin/tables/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   archiveTable: (id: string) => request<any>(`/api/admin/tables/${id}/archive`, { method: 'POST' }),
+  deleteRegistration: (id: string) => request<any>(`/api/admin/games/registrations/${id}`, { method: 'DELETE' }),
+  resendRegistrationEmail: (id: string) => request<any>(`/api/admin/games/registrations/${id}/resend`, { method: 'POST' }),
 
   // Admin Upload
   uploadImage: async (file: File): Promise<string> => {
